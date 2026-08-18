@@ -1,28 +1,80 @@
 @import "tailwindcss";
 
-@layer base {
-  :root {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-  }
+/* ──── Highlight.js: GitHub Dark Theme (adapted) ──── */
+.hljs {
+  color: #c9d1d9;
+  background: transparent;
 }
+.hljs-comment, .hljs-meta { color: #8b949e; }
+.hljs-string, .hljs-attr { color: #a5d6ff; }
+.hljs-keyword, .hljs-selector-tag { color: #ff7b72; }
+.hljs-function .hljs-title, .hljs-title.function_ { color: #d2a8ff; }
+.hljs-number, .hljs-literal { color: #79c0ff; }
+.hljs-built_in { color: #ffa657; }
+.hljs-type, .hljs-title.class_ { color: #ffa657; }
+.hljs-params { color: #c9d1d9; }
+.hljs-variable, .hljs-template-variable { color: #ffa657; }
+.hljs-regexp { color: #a5d6ff; }
+.hljs-symbol { color: #79c0ff; }
+.hljs-tag { color: #7ee787; }
+.hljs-name { color: #7ee787; }
+.hljs-selector-id, .hljs-selector-class { color: #d2a8ff; }
+.hljs-deletion { color: #ffa198; background: rgba(248, 81, 73, 0.1); }
+.hljs-addition { color: #7ee787; background: rgba(46, 160, 67, 0.15); }
 
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-}
-
-/* Custom scrollbar */
+/* ──── Custom scrollbar ──── */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: #333;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* ──── Animations ──── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes pulseSlow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+.animate-pulse-slow {
+  animation: pulseSlow 4s ease-in-out infinite;
+}
+
+/* ──── Markdown body styles ──── */
+.markdown-body {
+  line-height: 1.7;
+  word-break: break-word;
+}
+.markdown-body > *:first-child {
+  margin-top: 0;
+}
+.markdown-body > *:last-child {
+  margin-bottom: 0;
+}
+
+/* ──── Selection ──── */
+::selection {
+  background: rgba(52, 211, 153, 0.25);
 }
