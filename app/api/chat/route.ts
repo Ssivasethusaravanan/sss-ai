@@ -1,7 +1,21 @@
+import { getAuthUser } from '../../lib/auth';
+
 export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
+    // Auth check
+    const jwtSecret = process.env.JWT_SECRET;
+    if (jwtSecret) {
+      const authUser = await getAuthUser(req, jwtSecret);
+      if (!authUser) {
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
     const {
       messages,
       model = 'meta/llama-3.1-70b-instruct',

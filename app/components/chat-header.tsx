@@ -15,6 +15,7 @@ interface ChatHeaderProps {
   onNewChat: () => void;
   onLogout: () => void;
   onOpenSettings: () => void;
+  username?: string;
 }
 
 export default function ChatHeader({
@@ -24,6 +25,7 @@ export default function ChatHeader({
   onNewChat,
   onLogout,
   onOpenSettings,
+  username,
 }: ChatHeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-neutral-950/70 border-b border-white/10 shadow-2xl">
@@ -56,6 +58,18 @@ export default function ChatHeader({
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
+          {/* User Badge */}
+          {username && (
+            <div className="flex items-center gap-2 mr-1 px-3 py-1.5 rounded-lg bg-neutral-800/50 border border-neutral-700/50">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-[11px] font-bold text-neutral-950 uppercase">
+                {username.charAt(0)}
+              </div>
+              <span className="text-xs text-neutral-300 font-medium hidden sm:inline">
+                {username}
+              </span>
+            </div>
+          )}
+
           {/* Status Indicator */}
           <div className="flex items-center gap-1.5 mr-1">
             <span className="relative flex h-2.5 w-2.5">
@@ -85,7 +99,7 @@ export default function ChatHeader({
           {/* Logout */}
           <button
             onClick={onLogout}
-            title="Change API Key"
+            title="Sign Out"
             className="p-2 rounded-lg bg-neutral-800/50 border border-neutral-700/50 text-neutral-400 hover:text-red-400 hover:border-red-800/50 hover:bg-red-950/30 transition-all"
           >
             <LogOut className="w-4 h-4" />

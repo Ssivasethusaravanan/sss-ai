@@ -5,7 +5,7 @@ import { Bot, Loader2, AlertCircle } from 'lucide-react';
 import ChatHeader, { ModelOption } from './components/chat-header';
 import ChatInput from './components/chat-input';
 import ChatMessage, { MessageData } from './components/chat-message';
-import ApiKeyScreen from './components/api-key-screen';
+import AuthPage from './components/auth-page';
 import SystemPromptModal from './components/system-prompt-modal';
 
 const AVAILABLE_MODELS: ModelOption[] = [
@@ -16,17 +16,45 @@ const AVAILABLE_MODELS: ModelOption[] = [
   { id: 'nvidia/nemotron-3-ultra-550b-a55b', name: 'Nemotron Ultra 550B', tag: 'Flagship' },
 ];
 
+interface AuthUser {
+  id: number;
+  username: string;
+  email: string;
+}
+
 export default function ChatApp() {
   const [messages, setMessages] = useState<MessageData[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Auth state
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+
   const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[1].id); // Default to 70B
   const [systemPrompt, setSystemPrompt] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Check auth status on mount
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (data.user) {
+          setUser(data.user);
+        }
+      } catch {
+        // Not authenticated
+      } finally {
+        setIsAuthLoading(false);
+      }
+    }
+    checkAuth();
+  }, []);
 
   // Load persisted state
   useEffect(() => {
@@ -61,8 +89,6 @@ export default function ChatApp() {
     setError(null);
   }
 
-
-
   function handleModelChange(modelId: string) {
     setSelectedModel(modelId);
     localStorage.setItem('nvidia_model', modelId);
@@ -77,6 +103,17 @@ export default function ChatApp() {
     abortControllerRef.current?.abort();
     setIsLoading(false);
   }, []);
+
+  async function handleLogout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Ignore logout errors
+    }
+    setUser(null);
+    setMessages([]);
+    setError(null);
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -112,6 +149,13 @@ export default function ChatApp() {
           systemPrompt: systemPrompt || undefined,
         }),
       });
+
+      if (res.status === 401) {
+        setUser(null);
+        setError('Session expired. Please sign in again.');
+        setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+        return;
+      }
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
@@ -166,7 +210,19 @@ export default function ChatApp() {
     }
   }
 
+  // ──── Loading State ────
+  if (isAuthLoading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-neutral-950 text-neutral-50 items-center justify-center">
+        <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
+      </div>
+    );
+  }
 
+  // ──── Auth Gate ────
+  if (!user) {
+    return <AuthPage onAuthSuccess={(u) => setUser(u)} />;
+  }
 
   const currentModelName = AVAILABLE_MODELS.find((m) => m.id === selectedModel)?.name || 'AI';
 
@@ -179,8 +235,9 @@ export default function ChatApp() {
         models={AVAILABLE_MODELS}
         onModelChange={handleModelChange}
         onNewChat={handleNewChat}
-        onLogout={() => { setMessages([]); }}
+        onLogout={handleLogout}
         onOpenSettings={() => setShowSettings(true)}
+        username={user.username}
       />
 
       {/* System Prompt Modal */}
