@@ -10,8 +10,9 @@ export async function POST(req: Request) {
 
     // Auth check
     const jwtSecret = (cfEnv.JWT_SECRET as string) || (globalThis.process?.env?.JWT_SECRET as string | undefined);
+    let authUser = null;
     if (jwtSecret) {
-      const authUser = await getAuthUser(req, jwtSecret);
+      authUser = await getAuthUser(req, jwtSecret);
       if (!authUser) {
         return new Response(JSON.stringify({ error: 'Unauthorized' }), {
           status: 401,
@@ -24,15 +25,40 @@ export async function POST(req: Request) {
       messages,
       model = 'meta/llama-3.1-70b-instruct',
       systemPrompt,
+      chatId: providedChatId,
     } = await req.json();
 
     const apiKey = (cfEnv.NVIDIA_API_KEY as string) || (globalThis.process?.env?.NVIDIA_API_KEY as string | undefined);
-
     if (!apiKey) {
       return new Response(JSON.stringify({ error: 'Server API key not configured' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+
+    const db = cfEnv.DB as D1Database | undefined;
+    let chatId = providedChatId;
+    const lastUserMessage = messages[messages.length - 1];
+
+    if (authUser && db) {
+      if (!chatId) {
+        chatId = crypto.randomUUID();
+        // Create new chat
+        const title = lastUserMessage.content.slice(0, 50) || 'New Chat';
+        await db.prepare('INSERT INTO chats (id, user_id, title) VALUES (?, ?, ?)')
+          .bind(chatId, authUser.userId, title)
+          .run();
+      }
+
+      // Insert user message
+      await db.prepare('INSERT INTO messages (id, chat_id, role, content) VALUES (?, ?, ?, ?)')
+        .bind(crypto.randomUUID(), chatId, lastUserMessage.role, lastUserMessage.content)
+        .run();
+        
+      // Update chat updated_at
+      await db.prepare('UPDATE chats SET updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+        .bind(chatId)
+        .run();
     }
 
     // Build messages array with optional system prompt
@@ -76,10 +102,13 @@ export async function POST(req: Request) {
     // Stream SSE → plain text
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
+    
+    // Create a TransformStream to also accumulate the assistant message
     const stream = new ReadableStream({
       async start(controller) {
         const reader = nvidiaRes.body!.getReader();
         let buffer = '';
+        let assistantContent = '';
 
         try {
           while (true) {
@@ -94,14 +123,14 @@ export async function POST(req: Request) {
               const trimmed = line.trim();
               if (!trimmed || trimmed.startsWith(':')) continue;
               if (trimmed === 'data: [DONE]') {
-                controller.close();
-                return;
+                break;
               }
               if (trimmed.startsWith('data: ')) {
                 try {
                   const json = JSON.parse(trimmed.slice(6));
                   const delta = json.choices?.[0]?.delta?.content;
                   if (delta) {
+                    assistantContent += delta;
                     controller.enqueue(encoder.encode(delta));
                   }
                 } catch {
@@ -110,6 +139,14 @@ export async function POST(req: Request) {
               }
             }
           }
+          
+          // Save assistant message to DB
+          if (authUser && db && chatId && assistantContent) {
+            await db.prepare('INSERT INTO messages (id, chat_id, role, content) VALUES (?, ?, ?, ?)')
+              .bind(crypto.randomUUID(), chatId, 'assistant', assistantContent)
+              .run();
+          }
+
           controller.close();
         } catch (err) {
           controller.error(err);
@@ -124,6 +161,8 @@ export async function POST(req: Request) {
         'Content-Type': 'text/plain; charset=utf-8',
         'Transfer-Encoding': 'chunked',
         'X-Response-Time': String(responseTime),
+        // Send chatId back in headers so frontend can update URL or state
+        'X-Chat-Id': chatId || '',
       },
     });
   } catch (error) {
@@ -133,4 +172,18 @@ export async function POST(req: Request) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
+}
+
+interface D1Database {
+  prepare(query: string): D1PreparedStatement;
+}
+
+interface D1PreparedStatement {
+  bind(...values: unknown[]): D1PreparedStatement;
+  run(): Promise<D1Result>;
+}
+
+interface D1Result {
+  meta?: { last_row_id?: number };
+  success: boolean;
 }
