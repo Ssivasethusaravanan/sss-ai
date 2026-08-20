@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   try {
     const { env } = getCloudflareContext();
     const jwtSecret = (env as Record<string, unknown>).JWT_SECRET as string | undefined
-      || process.env.JWT_SECRET;
+      || (globalThis.process?.env?.JWT_SECRET as string | undefined);
 
     if (!jwtSecret) {
       return Response.json({ user: null }, { status: 200 });

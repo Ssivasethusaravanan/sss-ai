@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     const cfEnv = env as Record<string, unknown>;
 
     // Auth check
-    const jwtSecret = (cfEnv.JWT_SECRET as string) || process.env.JWT_SECRET;
+    const jwtSecret = (cfEnv.JWT_SECRET as string) || (globalThis.process?.env?.JWT_SECRET as string | undefined);
     if (jwtSecret) {
       const authUser = await getAuthUser(req, jwtSecret);
       if (!authUser) {
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       systemPrompt,
     } = await req.json();
 
-    const apiKey = (cfEnv.NVIDIA_API_KEY as string) || process.env.NVIDIA_API_KEY;
+    const apiKey = (cfEnv.NVIDIA_API_KEY as string) || (globalThis.process?.env?.NVIDIA_API_KEY as string | undefined);
 
     if (!apiKey) {
       return new Response(JSON.stringify({ error: 'Server API key not configured' }), {

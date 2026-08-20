@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 
     // Create JWT
     const jwtSecret = (env as Record<string, unknown>).JWT_SECRET as string
-      || process.env.JWT_SECRET;
+      || (globalThis.process?.env?.JWT_SECRET as string | undefined);
     if (!jwtSecret) {
       return Response.json(
         { error: 'JWT secret not configured' },
