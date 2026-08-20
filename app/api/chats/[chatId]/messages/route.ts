@@ -38,10 +38,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ chatId: 
       .bind(chatId)
       .all();
 
-    if (!result.success) {
-      return Response.json({ error: 'Failed to fetch messages' }, { status: 500 });
-    }
-
     return Response.json({ messages: result.results || [] });
   } catch (error) {
     console.error('Fetch messages error:', error);

@@ -26,10 +26,6 @@ export async function GET(req: Request) {
       .bind(user.userId)
       .all();
 
-    if (!result.success) {
-      return Response.json({ error: 'Failed to fetch chats' }, { status: 500 });
-    }
-
     return Response.json({ chats: result.results || [] });
   } catch (error) {
     console.error('Fetch chats error:', error);
