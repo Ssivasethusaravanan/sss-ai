@@ -11,14 +11,9 @@ import SystemPromptModal from './components/system-prompt-modal';
 const AVAILABLE_MODELS: ModelOption[] = [
   { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', tag: 'Fast' },
   { id: 'meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', tag: 'Balanced' },
-  { id: 'meta/llama-3.3-70b-instruct', name: 'Llama 3.3 70B', tag: 'Advanced' },
-  { id: 'meta/llama-3.1-405b-instruct', name: 'Llama 3.1 405B', tag: 'Flagship' },
-  { id: 'nvidia/llama-3.1-nemotron-70b-instruct', name: 'Nemotron 70B', tag: 'NVIDIA' },
-  { id: 'mistralai/mixtral-8x22b-instruct-v0.1', name: 'Mixtral 8x22B', tag: 'Mistral' },
-  { id: 'deepseek-ai/deepseek-r1', name: 'DeepSeek R1', tag: 'Reasoning' },
-  { id: 'deepseek-ai/deepseek-v3', name: 'DeepSeek V3', tag: 'Massive' },
-  { id: 'google/gemma-2-27b-it', name: 'Gemma 2 27B', tag: 'Google' },
-  { id: 'microsoft/phi-3-medium-128k-instruct', name: 'Phi 3 Medium', tag: 'Microsoft' },
+  { id: 'nvidia/llama-3.3-nemotron-super-49b-v1.5', name: 'Nemotron Super 49B', tag: 'NVIDIA' },
+  { id: 'nvidia/nemotron-3-super-120b-a12b', name: 'Nemotron Super 120B', tag: 'Advanced' },
+  { id: 'nvidia/nemotron-3-ultra-550b-a55b', name: 'Nemotron Ultra 550B', tag: 'Flagship' },
 ];
 
 export default function ChatApp() {
