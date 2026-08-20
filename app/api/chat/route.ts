@@ -4,14 +4,15 @@ export async function POST(req: Request) {
   try {
     const {
       messages,
-      apiKey,
       model = 'meta/llama-3.1-70b-instruct',
       systemPrompt,
     } = await req.json();
 
+    const apiKey = process.env.NVIDIA_API_KEY;
+
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'No API key provided' }), {
-        status: 400,
+      return new Response(JSON.stringify({ error: 'Server API key not configured' }), {
+        status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
     }

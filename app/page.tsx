@@ -21,7 +21,7 @@ export default function ChatApp() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const apiKey = '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';
+
   const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[1].id); // Default to 70B
   const [systemPrompt, setSystemPrompt] = useState('');
   const [showSettings, setShowSettings] = useState(false);
@@ -108,7 +108,6 @@ export default function ChatApp() {
         signal: controller.signal,
         body: JSON.stringify({
           messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
-          apiKey,
           model: selectedModel,
           systemPrompt: systemPrompt || undefined,
         }),
