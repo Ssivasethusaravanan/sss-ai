@@ -5,7 +5,7 @@ import { getAuthUser } from '../../../lib/auth';
 
 export async function GET(req: Request) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
     const jwtSecret = (env as Record<string, unknown>).JWT_SECRET as string | undefined
       || (globalThis.process?.env?.JWT_SECRET as string | undefined);
 

@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     }
 
     // Access D1 database via Cloudflare context
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
     const db = (env as Record<string, unknown>).DB as D1Database;
 
     if (!db) {

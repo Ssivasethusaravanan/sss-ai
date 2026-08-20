@@ -5,7 +5,7 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
-    const { env } = getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
     const cfEnv = env as Record<string, unknown>;
 
     // Auth check
