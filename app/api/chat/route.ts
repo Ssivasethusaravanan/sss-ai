@@ -34,9 +34,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         model,
         messages: apiMessages,
-        temperature: 0.6,
-        top_p: 0.9,
-        max_tokens: 4096,
+        max_tokens: 1024,
         stream: true,
       }),
     });
