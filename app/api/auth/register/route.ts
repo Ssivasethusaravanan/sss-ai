@@ -1,3 +1,4 @@
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import {
   generateSalt,
   hashPassword,
@@ -36,18 +37,16 @@ export async function POST(req: Request) {
       return Response.json({ error: passwordError }, { status: 400 });
     }
 
-    // Access D1 database via env
-    const env = (req as unknown as { env?: Record<string, unknown> }).env;
-    const DB = (globalThis as unknown as Record<string, unknown>).DB || env?.DB;
+    // Access D1 database via Cloudflare context
+    const { env } = getCloudflareContext();
+    const db = (env as Record<string, unknown>).DB as D1Database;
 
-    if (!DB) {
+    if (!db) {
       return Response.json(
         { error: 'Database not configured' },
         { status: 500 }
       );
     }
-
-    const db = DB as D1Database;
 
     // Check if email or username already exists
     const existing = await db
@@ -83,7 +82,8 @@ export async function POST(req: Request) {
     }
 
     // Create JWT
-    const jwtSecret = process.env.JWT_SECRET;
+    const jwtSecret = (env as Record<string, unknown>).JWT_SECRET as string
+      || process.env.JWT_SECRET;
     if (!jwtSecret) {
       return Response.json(
         { error: 'JWT secret not configured' },

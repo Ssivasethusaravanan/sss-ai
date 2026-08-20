@@ -1,10 +1,14 @@
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getAuthUser } from '../../../lib/auth';
 
 export const runtime = 'edge';
 
 export async function GET(req: Request) {
   try {
-    const jwtSecret = process.env.JWT_SECRET;
+    const { env } = getCloudflareContext();
+    const jwtSecret = (env as Record<string, unknown>).JWT_SECRET as string | undefined
+      || process.env.JWT_SECRET;
+
     if (!jwtSecret) {
       return Response.json({ user: null }, { status: 200 });
     }
