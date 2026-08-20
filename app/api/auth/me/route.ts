@@ -1,7 +1,7 @@
 import { getCloudflareContext } from '@opennextjs/cloudflare';
 import { getAuthUser } from '../../../lib/auth';
 
-export const runtime = 'edge';
+
 
 export async function GET(req: Request) {
   try {
