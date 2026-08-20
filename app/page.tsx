@@ -21,7 +21,7 @@ export default function ChatApp() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState('');
+  const apiKey = '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';
   const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[1].id); // Default to 70B
   const [systemPrompt, setSystemPrompt] = useState('');
   const [showSettings, setShowSettings] = useState(false);
@@ -30,8 +30,6 @@ export default function ChatApp() {
 
   // Load persisted state
   useEffect(() => {
-    const savedKey = localStorage.getItem('nvidia_api_key');
-    if (savedKey) setApiKey(savedKey);
     const savedModel = localStorage.getItem('nvidia_model');
     if (savedModel) setSelectedModel(savedModel);
     const savedPrompt = localStorage.getItem('nvidia_system_prompt');
@@ -57,22 +55,13 @@ export default function ChatApp() {
 
   // ──── Handlers ────
 
-  function handleSaveKey(key: string) {
-    setApiKey(key);
-    localStorage.setItem('nvidia_api_key', key);
-  }
-
-  function handleLogout() {
-    setApiKey('');
-    setMessages([]);
-    localStorage.removeItem('nvidia_api_key');
-  }
-
   function handleNewChat() {
     if (isLoading) handleStop();
     setMessages([]);
     setError(null);
   }
+
+
 
   function handleModelChange(modelId: string) {
     setSelectedModel(modelId);
@@ -178,10 +167,7 @@ export default function ChatApp() {
     }
   }
 
-  // ──── API Key Gate ────
-  if (!apiKey) {
-    return <ApiKeyScreen onSaveKey={handleSaveKey} />;
-  }
+
 
   const currentModelName = AVAILABLE_MODELS.find((m) => m.id === selectedModel)?.name || 'AI';
 
@@ -194,7 +180,7 @@ export default function ChatApp() {
         models={AVAILABLE_MODELS}
         onModelChange={handleModelChange}
         onNewChat={handleNewChat}
-        onLogout={handleLogout}
+        onLogout={() => { setMessages([]); }}
         onOpenSettings={() => setShowSettings(true)}
       />
 
